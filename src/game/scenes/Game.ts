@@ -13,6 +13,8 @@ export class Game extends Scene
     public gameObjectsLayer!: Phaser.GameObjects.Layer;
     private worldGenerator!: WorldGenerator;
     public solidObjectsGroup!: Phaser.GameObjects.Group;
+    private visibleObjects: Set<GameObject> = new Set();
+    private cullPadding: number = GameConfig.GRID.TILE_SIZE * 2;
 
     constructor ()
     {
@@ -47,6 +49,9 @@ export class Game extends Scene
         this.solidObjectsGroup = this.add.group();
 
         EventBus.emit('current-scene-ready', this);
+
+        // Setup camera culling check
+        this.cameras.main.on('camerascroll', this.cullObjects, this);
     }
 
     private setupPlayer(spawnPoint: { x: number, y: number }) {
@@ -64,7 +69,7 @@ export class Game extends Scene
         playerBody.setCollideWorldBounds(false);
         
         this.cameras.main.startFollow(this.player);
-        this.cameras.main.setZoom(1);
+        this.cameras.main.setZoom(3.5);
     }
 
     private findBeachSpawnPoint(): { x: number, y: number } {
@@ -124,6 +129,13 @@ export class Game extends Scene
     update() {
         this.handlePlayerMovement();
         this.chunkManager.update();
+        
+        // Only update visible objects
+        this.visibleObjects.forEach(obj => {
+            if (obj.active) {
+                obj.update();
+            }
+        });
     }
 
     private handlePlayerMovement() {
@@ -155,5 +167,40 @@ export class Game extends Scene
             x: this.player.x,
             y: this.player.y
         };
+    }
+
+    private cullObjects(): void {
+        const camera = this.cameras.main;
+        const bounds = {
+            left: camera.scrollX - this.cullPadding,
+            right: camera.scrollX + camera.width + this.cullPadding,
+            top: camera.scrollY - this.cullPadding,
+            bottom: camera.scrollY + camera.height + this.cullPadding
+        };
+
+        // Cull objects outside camera view
+        this.visibleObjects.forEach(obj => {
+            const visible = obj.x >= bounds.left && 
+                          obj.x <= bounds.right && 
+                          obj.y >= bounds.top && 
+                          obj.y <= bounds.bottom;
+            
+            obj.setVisible(visible);
+            obj.setActive(visible);
+            
+            // Disable physics for culled objects
+            if (obj.physicsBody) {
+                obj.physicsBody.enable = visible;
+            }
+        });
+    }
+
+    // Add method to register objects for culling
+    public registerForCulling(obj: GameObject): void {
+        this.visibleObjects.add(obj);
+    }
+
+    public unregisterFromCulling(obj: GameObject): void {
+        this.visibleObjects.delete(obj);
     }
 }

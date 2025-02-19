@@ -60,15 +60,16 @@ export class GameObject extends Phaser.GameObjects.Container {
     }
 
     public destroy(fromScene?: boolean): void {
+        // Unregister from culling
+        if (this.scene instanceof Game) {
+            this.scene.unregisterFromCulling(this);
+        }
+        
         // Clean up physics rectangle when destroying the object
         if (this.physicsRect) {
             this.physicsRect.destroy();
         }
         super.destroy(fromScene);
-    }
-
-    public canSpawn(): boolean {
-        return false;
     }
 
     public update(): void {
@@ -79,5 +80,10 @@ export class GameObject extends Phaser.GameObjects.Container {
         this.setDepth(50);
         this.scene.add.existing(this);
         this.setupPhysics();
+        
+        // Register for culling
+        if (this.scene instanceof Game) {
+            this.scene.registerForCulling(this);
+        }
     }
 }

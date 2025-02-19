@@ -35,9 +35,4 @@ export class Tree extends GameObject {
         
         return triangle;
     }
-
-    public canSpawn(): boolean {
-        const resourceValue = this.worldGenerator.getNoise(this.x, this.y, this.worldGenerator.noise.resources, 100);
-        return resourceValue > 0.3;
-    }
 } 
