@@ -93,6 +93,23 @@ React and Phaser Integration
 - **Debugging and Controls:**  
   The `App.tsx` component provides UI elements (buttons, debug panels) that interact with the Phaser game instance via React refs and the event bus.
 
+## Known Bugs
+- Player can sometimes spawn in the water or in trees, and cannot move. To fix, just reload the page and try loading in again. 
+
+## Game Controls
+
+### Main Menu
+- Click the "Enter World" button to start the game
+- Mouse hover effects show button interactivity
+
+### In-Game Controls
+- **Arrow Keys:** Move the player character
+
+The debug panel in the corner shows:
+- Current world coordinates (X, Y)
+- Current chunk coordinates
+- Real-time position updates
+
 ## Procedural Map Generation
 
 The game implements a chunk-based procedural world generation system with the following key components:
