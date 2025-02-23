@@ -130,21 +130,6 @@ Current Chunk: (${debugInfo.chunkCoords.x}, ${debugInfo.chunkCoords.y})
 `}
                     </pre>
                 </div>
-                <div className="scene-buttons">
-                    <h4>Scene Selection</h4>
-                    <button 
-                        className="button" 
-                        onClick={() => loadScene('MainMenu')}
-                    >
-                        Main Menu
-                    </button>
-                    <button 
-                        className="button" 
-                        onClick={() => loadScene('Game')}
-                    >
-                        Game World
-                    </button>
-                </div>
             </div>
         </div>
     )
