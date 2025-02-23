@@ -15,7 +15,8 @@ function App()
 
     const [debugInfo, setDebugInfo] = useState({
         coords: { x: 0, y: 0 },
-        chunkCoords: { x: 0, y: 0 }
+        chunkCoords: { x: 0, y: 0 },
+        tileType: { name: '', color: 0, isWall: false }
     });
 
     const changeScene = () => {
@@ -87,6 +88,7 @@ function App()
                 if (phaserRef.current?.scene) {
                     const gameScene = phaserRef.current.scene as Game;
                     const playerPos = gameScene.getPlayerPosition();
+                    const currentTileType = gameScene.getCurrentTileType();
                     if (playerPos) {
                         const worldX = Math.floor(playerPos.x / GameConfig.GRID.TILE_SIZE);
                         const worldY = Math.floor(playerPos.y / GameConfig.GRID.TILE_SIZE);
@@ -95,7 +97,8 @@ function App()
                         
                         setDebugInfo({
                             coords: { x: worldX, y: worldY },
-                            chunkCoords: { x: chunkX, y: chunkY }
+                            chunkCoords: { x: chunkX, y: chunkY },
+                            tileType: currentTileType || { name: 'Unknown', color: 0, isWall: false }
                         });
                     }
                 }
@@ -127,6 +130,10 @@ function App()
   Y: ${debugInfo.coords.y}
 
 Current Chunk: (${debugInfo.chunkCoords.x}, ${debugInfo.chunkCoords.y})
+
+Tile Type: ${debugInfo.tileType.name}
+  Wall: ${debugInfo.tileType.isWall ? 'Yes' : 'No'}
+  Color: #${debugInfo.tileType.color.toString(16).padStart(6, '0')}
 `}
                     </pre>
                 </div>

@@ -69,7 +69,7 @@ export class Game extends Scene
         playerBody.setCollideWorldBounds(false);
         
         this.cameras.main.startFollow(this.player);
-        this.cameras.main.setZoom(3.5);
+        this.cameras.main.setZoom(2.5);
     }
 
     private findBeachSpawnPoint(): { x: number, y: number } {
@@ -208,5 +208,14 @@ export class Game extends Scene
 
     public unregisterFromCulling(obj: GameObject): void {
         this.visibleObjects.delete(obj);
+    }
+
+    public getCurrentTileType() {
+        if (this.player) {
+            const worldX = Math.floor(this.player.x / GameConfig.GRID.TILE_SIZE);
+            const worldY = Math.floor(this.player.y / GameConfig.GRID.TILE_SIZE);
+            return this.chunkManager.worldGenerator.getTileTypeAt(worldX, worldY);
+        }
+        return null;
     }
 }

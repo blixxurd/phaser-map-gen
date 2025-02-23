@@ -54,9 +54,9 @@ export class WorldGenerator {
         if (terrainHeight < -0.25) return { color: 0x1A75FF, isWall: true, name: 'Water' };
         if (terrainHeight < -0.15) return { color: 0x4F94CD, isWall: true, name: 'Water' };
         if (terrainHeight < -0.05) return { color: 0xF7E9C3, isWall: false, name: 'Sand' };
-        if (terrainHeight < 0.2) return { color: 0x90B674, isWall: false, name: 'Dirt' };
-        if (terrainHeight < 0.4) return { color: 0x4A7340, isWall: false, name: 'Grass' };
-        if (terrainHeight < 0.6) return { color: 0x8B7355, isWall: false, name: 'Grass' };
+        if (terrainHeight < 0.2) return { color: 0x90B674, isWall: false, name: 'Light Grass' };
+        if (terrainHeight < 0.4) return { color: 0x4A7340, isWall: false, name: 'Dark Grass' };
+        if (terrainHeight < 0.6) return { color: 0x8B7355, isWall: false, name: 'Dirt' };
         if (terrainHeight < 0.8) return { color: 0x736F6E, isWall: true, name: 'Rock' };
         return { color: 0xE5E4E2, isWall: true, name: 'Rock' };
     }
