@@ -79,6 +79,7 @@ export class Game extends Scene
         let centerX = 0;
         let centerY = 0;
         
+        // First pass: Look for beach tiles adjacent to water with no trees
         for (let r = 1; r < searchRadius; r++) {
             for (let x = -r; x <= r; x++) {
                 for (let y = -r; y <= r; y++) {
@@ -86,8 +87,10 @@ export class Game extends Scene
                     const worldY = Math.floor(centerY/tileWorldSize) + y;
                     
                     const currentTile = this.worldGenerator.getTileType(worldX, worldY);
+                    const resourceValue = this.worldGenerator.getResourceValue(worldX * tileWorldSize, worldY * tileWorldSize);
                     
-                    if (!currentTile.isWall) {
+                    // Check if it's a valid ground tile AND has no tree (resource value <= 0.2)
+                    if (!currentTile.isWall && resourceValue <= 0.2) {
                         const hasAdjacentWater = [
                             this.worldGenerator.getTileType(worldX + 1, worldY),
                             this.worldGenerator.getTileType(worldX - 1, worldY),
@@ -106,6 +109,7 @@ export class Game extends Scene
             }
         }
         
+        // Fallback: Look for any valid ground tile without trees
         for (let r = 1; r < searchRadius; r++) {
             for (let x = -r; x <= r; x++) {
                 for (let y = -r; y <= r; y++) {
@@ -113,7 +117,9 @@ export class Game extends Scene
                     const worldY = Math.floor(centerY/tileWorldSize) + y;
                     
                     const currentTile = this.worldGenerator.getTileType(worldX, worldY);
-                    if (!currentTile.isWall) {
+                    const resourceValue = this.worldGenerator.getResourceValue(worldX * tileWorldSize, worldY * tileWorldSize);
+                    
+                    if (!currentTile.isWall && resourceValue <= 0.2) {
                         return {
                             x: worldX * tileWorldSize + tileWorldSize/2,
                             y: worldY * tileWorldSize + tileWorldSize/2

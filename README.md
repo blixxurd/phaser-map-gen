@@ -24,22 +24,13 @@ This app currently uses the following versions:
 | `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
 | `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
 
-## Writing Code
-
-After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
-
-The local development server runs on `http://localhost:8080` by default. Please see the Next.js documentation if you wish to change this, or add SSL support.
-
-Once the server is running you can edit any of the files in the `src` folder. Next.js will automatically recompile your code and then reload the browser.
-
-## Template Project Structure & Key Components
-
-Below is an outline of the key parts of the Phaser app and its integration with Next.js:
-
-### 1. Project Overview
+## Project Overview
 
 - **Purpose:**  
-  This project is a proof-of-concept template for integrating a Phaser 3 game with a Next.js (React) application. It demonstrates how to bridge game logic and UI components—enabling hot-reloading and production-ready builds.
+  This project is a proof-of-concept template for creating a 2D RPG Map generator using Phaser 3. It is designed to be a starting point for developing a 2D RPG, and specifically focuses on the map generation and management through procedural generation. 
+
+- **Project Structure:**  
+  This project is structured to clearly separate game logic (handled by Phaser) from the UI and layout (managed by Next.js and React). This modular design facilitates easy expansion, maintenance, and rapid development through hot-reloading.
   
 - **Technologies Used:**  
   - **Phaser 3:** For game logic and rendering.  
@@ -47,8 +38,8 @@ Below is an outline of the key parts of the Phaser app and its integration with 
   - **TypeScript:** For type safety and modern development practices.  
   - **Additional Libraries:** Such as `simplex-noise` for procedural world generation.
 
-### 2. Key Folders and Files
-- **src Folder:**  
+### Key Folders and Files
+- **src Folder (React):**  
   - **pages:**  
     - `index.tsx`: The main entry point that dynamically imports the main app component via Next.js (with SSR disabled for the Phaser game).  
     - `_app.tsx` & `_document.tsx`: Set up global styles and document structure.
@@ -59,7 +50,7 @@ Below is an outline of the key parts of the Phaser app and its integration with 
   - **App.tsx:**  
     Acts as the main React component interfacing with the Phaser game. It manages state (like player position or debug info) and provides controls for scene changes.
 
-- **game Folder:**  
+- **game Folder (Phaser):**  
   Contains all Phaser-specific logic and organization:
   
   - **main.ts:**  
@@ -91,7 +82,7 @@ Below is an outline of the key parts of the Phaser app and its integration with 
 - **Utility Script:**  
   - `log.js`: A Node.js script used during development and builds to send optional anonymous logging data.
 
-### 3. React and Phaser Integration
+React and Phaser Integration
 
 - **Communication Mechanism:**  
   An event bus (`EventBus.ts`) is used for communication between React components (UI) and Phaser scenes. This helps synchronize actions like scene transitions and debug updates.
@@ -102,10 +93,77 @@ Below is an outline of the key parts of the Phaser app and its integration with 
 - **Debugging and Controls:**  
   The `App.tsx` component provides UI elements (buttons, debug panels) that interact with the Phaser game instance via React refs and the event bus.
 
-### 4. Summary
+## Procedural Map Generation
 
-This project is structured to clearly separate game logic (handled by Phaser) from the UI and layout (managed by Next.js and React). This modular design facilitates easy expansion, maintenance, and rapid development through hot-reloading.
+The game implements a chunk-based procedural world generation system with the following key components:
 
-Happy coding!
+### World Generator
+The `WorldGenerator` class uses multiple layers of noise to create varied terrain:
+
+- Uses Simplex noise with multiple octaves for natural-looking terrain generation
+- Separate noise generators for terrain, water, and resources
+- Generates different tile types (water, sand, dirt, grass, rock) based on height values
+- Handles object placement (like trees) based on resource noise values
+
+### Chunk Management
+The `ChunkManager` handles dynamic loading and unloading of world chunks:
+
+- World is divided into chunks (16x16 tiles by default)
+- Chunks are generated and loaded dynamically as the player moves
+- Maintains efficient memory usage by unloading distant chunks
+- Handles both terrain tiles and game objects within chunks
+
+### Key Features
+
+1. **Terrain Generation**
+   - Multiple biome types based on height values
+   - Smooth transitions between different terrain types
+   - Water bodies and coastlines
+   - Collision handling for walls and obstacles
+
+2. **Object Placement**
+   - Dynamic object spawning based on terrain type
+   - Trees and other objects placed using resource noise
+   - Physics-enabled objects with proper collision detection
+   - Automatic cleanup when chunks unload
+
+3. **Performance Optimization**
+   - Chunk-based loading/unloading system
+   - Object culling for off-screen entities
+   - Efficient physics handling for active objects
+   - Memory management through dynamic chunk lifecycle
+
+### Technical Implementation
+
+The generation system uses a multi-layered approach:
+
+1. **Base Terrain Layer**
+   - Generated using octaved Simplex noise
+   - Height values determine basic terrain type
+   - Handles water level and land mass distribution
+
+2. **Resource Distribution**
+   - Secondary noise layer for object placement
+   - Controls density and distribution of trees and resources
+   - Ensures natural-looking object clusters
+
+3. **Physics Integration**
+   - Automatic collision setup for walls and objects
+   - Dynamic physics body creation and cleanup
+   - Optimized collision detection within active chunks
+
+The system is designed to be expandable, allowing for easy addition of new terrain types, objects, and biomes while maintaining performance through efficient chunk management and object culling.
+
+## Writing Code & Running the Game
+
+After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
+
+The local development server runs on `http://localhost:8080` by default. Please see the Next.js documentation if you wish to change this, or add SSL support.
+
+Once the server is running you can edit any of the files in the `src` folder. Next.js will automatically recompile your code and then reload the browser.
+
+## Template Project Structure & Key Components
+
+Below is an outline of the key parts of the Phaser app and its integration with Next.js:
 
 
