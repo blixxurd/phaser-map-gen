@@ -9,6 +9,12 @@ export class Game extends Scene
 {
     public player!: Phaser.GameObjects.Rectangle;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+    private wasdKeys!: {
+      W: Phaser.Input.Keyboard.Key;
+      A: Phaser.Input.Keyboard.Key;
+      S: Phaser.Input.Keyboard.Key;
+      D: Phaser.Input.Keyboard.Key;
+    }
     private chunkManager!: ChunkManager;
     public gameObjectsLayer!: Phaser.GameObjects.Layer;
     private worldGenerator!: WorldGenerator;
@@ -42,8 +48,20 @@ export class Game extends Scene
         // Get cursor keys for movement
         this.cursors = this.input.keyboard.createCursorKeys();
 
+        // Get WASD keys for movement
+        this.wasdKeys = {
+            W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+        }
+
         if (!this.cursors) {
             console.error('No cursor keys found');
+        }
+
+        if (!this.wasdKeys) {
+            console.error('No WASD keys found');
         }
 
         this.solidObjectsGroup = this.add.group();
@@ -149,15 +167,15 @@ export class Game extends Scene
         body.setVelocity(0);
         const speed = GameConfig.PLAYER.SPEED;
 
-        if (this.cursors.left.isDown) {
+        if (this.cursors.left.isDown || this.wasdKeys.A.isDown) {
             body.setVelocityX(-speed);
-        } else if (this.cursors.right.isDown) {
+        } else if (this.cursors.right.isDown || this.wasdKeys.D.isDown) {
             body.setVelocityX(speed);
         }
 
-        if (this.cursors.up.isDown) {
+        if (this.cursors.up.isDown || this.wasdKeys.W.isDown) {
             body.setVelocityY(-speed);
-        } else if (this.cursors.down.isDown) {
+        } else if (this.cursors.down.isDown || this.wasdKeys.S.isDown) {
             body.setVelocityY(speed);
         }
     }
