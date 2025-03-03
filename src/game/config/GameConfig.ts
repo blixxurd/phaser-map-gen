@@ -11,7 +11,7 @@ export const GameConfig = {
     // Player constants
     PLAYER: {
         SPEED: 80,         // Player movement speed
-        SIZE: 10,          // Player size in pixels
+        SIZE: 12,          // Player size in pixels
     },
     // World constants
     WORLD: {

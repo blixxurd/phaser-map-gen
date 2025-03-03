@@ -34,6 +34,39 @@ export class Preloader extends Scene
 
         this.load.image('logo', 'logo.png');
         this.load.image('star', 'star.png');
+        
+        // Load player sprite sheets
+        // Idle animations
+        this.load.spritesheet('player-idle-down', 'spr_player_idle_down.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('player-idle-left', 'spr_player_idle_left.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('player-idle-right', 'spr_player_idle_right.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+
+        // Walking animations
+        this.load.spritesheet('player-walk-down', 'spr_player_walk_down.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('player-walk-up', 'spr_player_walk_up.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('player-walk-left', 'spr_player_walk_left.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
+        this.load.spritesheet('player-walk-right', 'spr_player_walk_right.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
     }
 
     create ()

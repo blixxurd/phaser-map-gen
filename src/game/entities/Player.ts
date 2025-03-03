@@ -6,7 +6,7 @@ export interface InventorySlot {
     quantity: number;
 }
 
-export class Player extends Phaser.GameObjects.Rectangle {
+export class Player extends Phaser.GameObjects.Sprite {
     private inventory: InventorySlot[];
     private readonly INVENTORY_SIZE = 28;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -16,15 +16,22 @@ export class Player extends Phaser.GameObjects.Rectangle {
         S: Phaser.Input.Keyboard.Key;
         D: Phaser.Input.Keyboard.Key;
     };
+    private currentAnimation: string = 'idle-down';
 
     constructor(scene: Scene, x: number, y: number) {
-        super(scene, x, y, GameConfig.PLAYER.SIZE, GameConfig.PLAYER.SIZE, 0xff00ff);
+        super(scene, x, y, 'player-idle-down');
+        
+        // Scale the sprite to match the desired size
+        this.setScale(GameConfig.PLAYER.SIZE / 16);
         
         // Initialize inventory with empty slots
         this.inventory = Array(this.INVENTORY_SIZE).fill(null).map(() => ({
             itemId: null,
             quantity: 0
         }));
+
+        // Create animations
+        this.createAnimations();
 
         // Enable physics
         scene.physics.add.existing(this);
@@ -46,6 +53,48 @@ export class Player extends Phaser.GameObjects.Rectangle {
             S: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
             D: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
         };
+
+        // Start with idle animation
+        this.play('idle-down');
+    }
+
+    private createAnimations() {
+        const FRAMES_PER_ANIMATION = 6;
+        const walkFrameRate = GameConfig.PLAYER.SPEED / FRAMES_PER_ANIMATION;
+        const idleFrameRate = 5;  // Slower frame rate for idle animations
+        
+        // Create idle animations with all frames
+        ['down', 'left', 'right'].forEach(direction => {
+            this.scene.anims.create({
+                key: `idle-${direction}`,
+                frames: this.scene.anims.generateFrameNumbers(`player-idle-${direction}`, {
+                    start: 0,
+                    end: 5  // Use all 6 frames for idle animations
+                }),
+                frameRate: idleFrameRate,
+                repeat: -1  // Loop the idle animation
+            });
+        });
+
+        // Create walking animations
+        ['down', 'up', 'left', 'right'].forEach(direction => {
+            this.scene.anims.create({
+                key: `walk-${direction}`,
+                frames: this.scene.anims.generateFrameNumbers(`player-walk-${direction}`, {
+                    start: 0,
+                    end: 5  // 6 frames total (0-5)
+                }),
+                frameRate: walkFrameRate,
+                repeat: -1
+            });
+        });
+
+        // Use walk-up first frame for idle-up since we don't have an idle-up sprite
+        this.scene.anims.create({
+            key: 'idle-up',
+            frames: [{ key: 'player-walk-up', frame: 0 }],
+            frameRate: 1
+        });
     }
 
     public getInventory(): InventorySlot[] {
@@ -117,16 +166,53 @@ export class Player extends Phaser.GameObjects.Rectangle {
         body.setVelocity(0);
         const speed = GameConfig.PLAYER.SPEED;
 
+        let moving = false;
+        let newAnimation = this.currentAnimation;
+        let dx = 0;
+        let dy = 0;
+
+        // Calculate movement direction
         if (this.cursors.left.isDown || this.wasdKeys.A.isDown) {
-            body.setVelocityX(-speed);
+            dx = -1;
+            newAnimation = 'walk-left';
+            moving = true;
         } else if (this.cursors.right.isDown || this.wasdKeys.D.isDown) {
-            body.setVelocityX(speed);
+            dx = 1;
+            newAnimation = 'walk-right';
+            moving = true;
         }
 
         if (this.cursors.up.isDown || this.wasdKeys.W.isDown) {
-            body.setVelocityY(-speed);
+            dy = -1;
+            newAnimation = moving ? newAnimation : 'walk-up';
+            moving = true;
         } else if (this.cursors.down.isDown || this.wasdKeys.S.isDown) {
-            body.setVelocityY(speed);
+            dy = 1;
+            newAnimation = moving ? newAnimation : 'walk-down';
+            moving = true;
+        }
+
+        // Normalize diagonal movement
+        if (dx !== 0 && dy !== 0) {
+            // Moving diagonally, normalize the speed
+            const normalizer = 1 / Math.sqrt(2);
+            dx *= normalizer;
+            dy *= normalizer;
+        }
+
+        // Apply movement
+        body.setVelocity(dx * speed, dy * speed);
+
+        // If not moving, switch to idle animation
+        if (!moving) {
+            const direction = this.currentAnimation.split('-')[1];
+            newAnimation = `idle-${direction}`;
+        }
+
+        // Only change animation if it's different
+        if (newAnimation !== this.currentAnimation) {
+            this.play(newAnimation);
+            this.currentAnimation = newAnimation;
         }
     }
 
