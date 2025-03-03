@@ -5,6 +5,11 @@ import { WorldGenerator } from '../world/WorldGenerator';
 import { GameObject } from '../world/GameObject';
 import { GameConfig } from '../config/GameConfig';
 
+/**
+ * The main game scene.
+ * This scene is responsible for handling the player's movement, camera, and the chunk manager.
+ * It also handles the culling of objects that are outside the camera's view.
+ */
 export class Game extends Scene
 {
     public player!: Phaser.GameObjects.Rectangle;
@@ -19,6 +24,7 @@ export class Game extends Scene
     public gameObjectsLayer!: Phaser.GameObjects.Layer;
     private worldGenerator!: WorldGenerator;
     public solidObjectsGroup!: Phaser.GameObjects.Group;
+    public interactiveObjectsGroup!: Phaser.GameObjects.Group;
     private visibleObjects: Set<GameObject> = new Set();
     private cullPadding: number = GameConfig.GRID.TILE_SIZE * 2;
 
@@ -27,8 +33,13 @@ export class Game extends Scene
         super({ key: 'Game' });
     }
 
+    /**
+     * Create the game scene.
+     * This is called when the scene is created.
+     */
     create ()
     {
+        // Initialize the world generator
         this.worldGenerator = new WorldGenerator();
         
         // Find a suitable beach spawn point
@@ -36,6 +47,13 @@ export class Game extends Scene
         
         // Create player and setup
         this.setupPlayer(spawnPoint);
+
+        // Initialize object groups
+        this.solidObjectsGroup = this.add.group({ runChildUpdate: true });
+        this.interactiveObjectsGroup = this.add.group({ runChildUpdate: true });
+        
+        // Set up group collisions
+        this.physics.add.collider(this.player, this.solidObjectsGroup);
         
         // Initialize chunk manager
         this.chunkManager = new ChunkManager(this, this.player);
@@ -63,8 +81,6 @@ export class Game extends Scene
         if (!this.wasdKeys) {
             console.error('No WASD keys found');
         }
-
-        this.solidObjectsGroup = this.add.group();
 
         EventBus.emit('current-scene-ready', this);
 
@@ -209,13 +225,23 @@ export class Game extends Scene
                           obj.y >= bounds.top && 
                           obj.y <= bounds.bottom;
             
-            obj.setVisible(visible);
-            obj.setActive(visible);
-            
-            // Disable physics for culled objects
-            if (obj.physicsBody) {
-                obj.physicsBody.enable = visible;
+            // Only update states if visibility changed
+            if (obj.visible !== visible) {
+                obj.setVisible(visible);
+                obj.setActive(visible);
+                
+                // Disable physics for culled objects
+                if (obj.body) {
+                    const body = obj.body as Phaser.Physics.Arcade.Body;
+                    body.enable = visible;
+                    
+                    // If disabling, also stop any current movement
+                    if (!visible) {
+                        body.setVelocity(0, 0);
+                    }
+                }
             }
+            
         });
     }
 
@@ -232,7 +258,7 @@ export class Game extends Scene
         if (this.player) {
             const worldX = Math.floor(this.player.x / GameConfig.GRID.TILE_SIZE);
             const worldY = Math.floor(this.player.y / GameConfig.GRID.TILE_SIZE);
-            return this.chunkManager.worldGenerator.getTileTypeAt(worldX, worldY);
+            return this.worldGenerator.getTileType(worldX, worldY);
         }
         return null;
     }

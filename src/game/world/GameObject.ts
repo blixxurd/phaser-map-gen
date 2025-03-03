@@ -3,6 +3,12 @@ import { TileType, WorldGenerator } from './WorldGenerator';
 import { Game } from '../scenes/Game';
 import { GameConfig } from '../config/GameConfig';
 
+/**
+ * Base class for all objects in the game.
+ * All objects in the game should extend this class. 
+ * Each object is responsible for its own rendering and physics.
+ * It is also responsible for registering and unregistering itself from the culling system.
+ */
 export class GameObject extends Phaser.GameObjects.Container {
     protected shape: Phaser.GameObjects.Shape;
     protected worldGenerator: WorldGenerator;
@@ -22,6 +28,9 @@ export class GameObject extends Phaser.GameObjects.Container {
         this.tileType = this.worldGenerator.getTileTypeAt(x, y);
     }
 
+    /**
+     * Setup the physics for the object.
+     */
     protected setupPhysics(): void {
         if (this.isSolid) {
             // Create a separate invisible rectangle for physics
@@ -51,18 +60,27 @@ export class GameObject extends Phaser.GameObjects.Container {
                 this.add(debugRect);
             }
 
-            // Add collision with player
+            // Add to appropriate group based on object type
             const gameScene = this.scene as Game;
-            if (gameScene.player) {
-                this.scene.physics.add.collider(gameScene.player, this.physicsRect);
+            if (gameScene.solidObjectsGroup) {
+                gameScene.solidObjectsGroup.add(this.physicsRect);
             }
         }
     }
 
+    /**
+     * Destroy the object.
+     * @param fromScene - Whether the object is being destroyed from the main game scene.
+     */
     public destroy(fromScene?: boolean): void {
         // Unregister from culling
         if (this.scene instanceof Game) {
             this.scene.unregisterFromCulling(this);
+            
+            // Remove from groups
+            if (this.isSolid && this.physicsRect) {
+                this.scene.solidObjectsGroup.remove(this.physicsRect, true, true);
+            }
         }
         
         // Clean up physics rectangle when destroying the object
@@ -72,10 +90,20 @@ export class GameObject extends Phaser.GameObjects.Container {
         super.destroy(fromScene);
     }
 
+    /**
+     * Update the object.
+     */
     public update(): void {
         // Base update method - override in specific object classes
+        if (this.physicsRect) {
+            // Update physics body position if it exists
+            this.physicsRect.setPosition(this.x, this.y);
+        }
     }
 
+    /**
+     * Render the object.
+     */
     public render() {
         this.setDepth(50);
         this.scene.add.existing(this);

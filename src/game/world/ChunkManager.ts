@@ -3,6 +3,11 @@ import { WorldGenerator } from './WorldGenerator';
 import { GameObject } from './GameObject';
 import { GameConfig } from '../config/GameConfig';
 
+/**
+ * The ChunkManager is responsible for managing the chunks of the world.
+ * It is responsible for loading and unloading chunks based on the player's position.
+ * It is also responsible for creating and destroying chunks.
+ */
 export class ChunkManager {
     private chunks: Map<string, Phaser.GameObjects.Rectangle[]> = new Map();
     private gameObjects: Map<string, GameObject[]> = new Map();
@@ -26,10 +31,21 @@ export class ChunkManager {
         this.worldGenerator = new WorldGenerator();
     }
 
+    /**
+     * Get the key for a chunk.
+     * @param chunkX - The x coordinate of the chunk.
+     * @param chunkY - The y coordinate of the chunk.
+     * @returns The key for the chunk.
+     */
     private getChunkKey(chunkX: number, chunkY: number): string {
         return `${chunkX},${chunkY}`;
     }
 
+    /**
+     * Generate a chunk.
+     * @param chunkX - The x coordinate of the chunk.
+     * @param chunkY - The y coordinate of the chunk.
+     */
     generateChunk(chunkX: number, chunkY: number) {
         const key = this.getChunkKey(chunkX, chunkY);
         if (this.loadedChunks.has(key)) return;
@@ -90,6 +106,11 @@ export class ChunkManager {
         });
     }
 
+    /**
+     * Update the chunks based on the player's position.
+     * This function loads chunks that are in the player's view and unloads chunks that are too far away.
+     * See GameConfig for the load and unload distances.
+     */
     update() {
         const playerChunkX = Math.floor(this.player.x / (this.chunkSize * this.tileSize));
         const playerChunkY = Math.floor(this.player.y / (this.chunkSize * this.tileSize));
