@@ -17,7 +17,7 @@ export const GameConfig = {
     WORLD: {
         CHUNK_LOAD_RADIUS: 2,   // Number of chunks to load around player
         CHUNK_UNLOAD_RADIUS: 3, // Distance at which chunks are unloaded
-        SPAWN_SEARCH_RADIUS: 50 // Radius to search for spawn point
+        SPAWN_SEARCH_RADIUS: 300 // Radius to search for spawn point
     },
     // Performance and garbage collection configuration
     PERFORMANCE: {

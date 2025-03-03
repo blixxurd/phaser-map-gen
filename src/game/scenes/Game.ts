@@ -4,6 +4,7 @@ import { ChunkManager } from '../world/ChunkManager';
 import { WorldGenerator } from '../world/WorldGenerator';
 import { GameObject } from '../world/GameObject';
 import { GameConfig } from '../config/GameConfig';
+import { Player } from '../entities/Player';
 
 /**
  * The main game scene.
@@ -12,7 +13,7 @@ import { GameConfig } from '../config/GameConfig';
  */
 export class Game extends Scene
 {
-    public player!: Phaser.GameObjects.Rectangle;
+    public player!: Player;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private wasdKeys!: {
       W: Phaser.Input.Keyboard.Key;
@@ -88,24 +89,22 @@ export class Game extends Scene
         this.cameras.main.on('camerascroll', this.cullObjects, this);
     }
 
+    /**
+     * Setup the player.
+     * @param spawnPoint - The spawn point.
+     */
     private setupPlayer(spawnPoint: { x: number, y: number }) {
-        this.player = this.add.rectangle(
-            spawnPoint.x, 
-            spawnPoint.y, 
-            GameConfig.PLAYER.SIZE, 
-            GameConfig.PLAYER.SIZE, 
-            0xff00ff
-        );
-        this.physics.add.existing(this.player);
-        this.player.setDepth(100);
-        
-        const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
-        playerBody.setCollideWorldBounds(false);
+        this.player = new Player(this, spawnPoint.x, spawnPoint.y);
+        this.add.existing(this.player);
         
         this.cameras.main.startFollow(this.player);
         this.cameras.main.setZoom(2.5);
     }
 
+    /**
+     * Find a suitable spawn point near the beach.
+     * @returns The spawn point.
+     */
     private findBeachSpawnPoint(): { x: number, y: number } {
         const searchRadius = GameConfig.WORLD.SPAWN_SEARCH_RADIUS;
         const tileWorldSize = GameConfig.GRID.TILE_SIZE;
@@ -166,6 +165,9 @@ export class Game extends Scene
         return { x: centerX, y: centerY };
     }
 
+    /**
+     * The main game update loop.
+     */
     update() {
         this.handlePlayerMovement();
         this.chunkManager.update();
@@ -178,6 +180,9 @@ export class Game extends Scene
         });
     }
 
+    /**
+     * Handle the player's movement.
+     */
     private handlePlayerMovement() {
         const body = this.player.body as Phaser.Physics.Arcade.Body;
         body.setVelocity(0);
@@ -196,12 +201,19 @@ export class Game extends Scene
         }
     }
 
-    changeScene ()
+    /**
+     * Change the scene to the given scene.
+     * @param scene - The scene to change to.
+     */
+    changeScene (scene: string = 'GameOver')
     {
-        this.scene.start('GameOver');
+        this.scene.start(scene);
     }
 
-    // Add getter for player position
+    /**
+     * Get the player's position.
+     * @returns The player's position.
+     */
     public getPlayerPosition() {
         return {
             x: this.player.x,
@@ -209,6 +221,9 @@ export class Game extends Scene
         };
     }
 
+    /**
+     * Cull objects outside the camera's view.
+     */
     private cullObjects(): void {
         const camera = this.cameras.main;
         const bounds = {
@@ -245,15 +260,26 @@ export class Game extends Scene
         });
     }
 
-    // Add method to register objects for culling
+    /**
+     * Register an object for culling.
+     * @param obj - The object to register.
+     */
     public registerForCulling(obj: GameObject): void {
         this.visibleObjects.add(obj);
     }
 
+    /**
+     * Unregister an object from culling.
+     * @param obj - The object to unregister.
+     */
     public unregisterFromCulling(obj: GameObject): void {
         this.visibleObjects.delete(obj);
     }
 
+    /**
+     * Get the current tile type.
+     * @returns The tile type of the current tile.
+     */
     public getCurrentTileType() {
         if (this.player) {
             const worldX = Math.floor(this.player.x / GameConfig.GRID.TILE_SIZE);
