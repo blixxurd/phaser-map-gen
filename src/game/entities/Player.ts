@@ -9,6 +9,13 @@ export interface InventorySlot {
 export class Player extends Phaser.GameObjects.Rectangle {
     private inventory: InventorySlot[];
     private readonly INVENTORY_SIZE = 28;
+    private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+    private wasdKeys!: {
+        W: Phaser.Input.Keyboard.Key;
+        A: Phaser.Input.Keyboard.Key;
+        S: Phaser.Input.Keyboard.Key;
+        D: Phaser.Input.Keyboard.Key;
+    };
 
     constructor(scene: Scene, x: number, y: number) {
         super(scene, x, y, GameConfig.PLAYER.SIZE, GameConfig.PLAYER.SIZE, 0xff00ff);
@@ -26,6 +33,19 @@ export class Player extends Phaser.GameObjects.Rectangle {
 
         // Set the depth to ensure player is visible above terrain
         this.setDepth(100);
+
+        // Setup input
+        if (!scene.input.keyboard) {
+            throw new Error('No keyboard found');
+        }
+        
+        this.cursors = scene.input.keyboard.createCursorKeys();
+        this.wasdKeys = {
+            W: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+            A: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+            S: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+            D: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+        };
     }
 
     public getInventory(): InventorySlot[] {
@@ -87,5 +107,36 @@ export class Player extends Phaser.GameObjects.Rectangle {
             }
         }
         return false;
+    }
+
+    /**
+     * Handle the player's movement. Should be called in the update loop.
+     */
+    public handleMovement() {
+        const body = this.body as Phaser.Physics.Arcade.Body;
+        body.setVelocity(0);
+        const speed = GameConfig.PLAYER.SPEED;
+
+        if (this.cursors.left.isDown || this.wasdKeys.A.isDown) {
+            body.setVelocityX(-speed);
+        } else if (this.cursors.right.isDown || this.wasdKeys.D.isDown) {
+            body.setVelocityX(speed);
+        }
+
+        if (this.cursors.up.isDown || this.wasdKeys.W.isDown) {
+            body.setVelocityY(-speed);
+        } else if (this.cursors.down.isDown || this.wasdKeys.S.isDown) {
+            body.setVelocityY(speed);
+        }
+    }
+
+    /**
+     * Get the player's position.
+     */
+    public getPosition() {
+        return {
+            x: this.x,
+            y: this.y
+        };
     }
 } 

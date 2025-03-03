@@ -62,8 +62,8 @@ export class GameObject extends Phaser.GameObjects.Container {
 
             // Add to appropriate group based on object type
             const gameScene = this.scene as Game;
-            if (gameScene.solidObjectsGroup) {
-                gameScene.solidObjectsGroup.add(this.physicsRect);
+            if (gameScene.objectGroupManager) {
+                gameScene.objectGroupManager.addSolidObject(this.physicsRect);
             }
         }
     }
@@ -73,17 +73,14 @@ export class GameObject extends Phaser.GameObjects.Container {
      * @param fromScene - Whether the object is being destroyed from the main game scene.
      */
     public destroy(fromScene?: boolean): void {
-        // Unregister from culling
         if (this.scene instanceof Game) {
-            this.scene.unregisterFromCulling(this);
+            this.scene.cullingManager.unregisterObject(this);
             
-            // Remove from groups
             if (this.isSolid && this.physicsRect) {
-                this.scene.solidObjectsGroup.remove(this.physicsRect, true, true);
+                this.scene.objectGroupManager.removeSolidObject(this.physicsRect);
             }
         }
         
-        // Clean up physics rectangle when destroying the object
         if (this.physicsRect) {
             this.physicsRect.destroy();
         }
@@ -109,9 +106,9 @@ export class GameObject extends Phaser.GameObjects.Container {
         this.scene.add.existing(this);
         this.setupPhysics();
         
-        // Register for culling
+        // Register for culling using the new manager
         if (this.scene instanceof Game) {
-            this.scene.registerForCulling(this);
+            this.scene.cullingManager.registerObject(this);
         }
     }
 }

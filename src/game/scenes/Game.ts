@@ -5,6 +5,9 @@ import { WorldGenerator } from '../world/WorldGenerator';
 import { GameObject } from '../world/GameObject';
 import { GameConfig } from '../config/GameConfig';
 import { Player } from '../entities/Player';
+import { CullingManager } from '../world/CullingManager';
+import { SpawnManager } from '../world/SpawnManager';
+import { ObjectGroupManager } from '../world/ObjectGroupManager';
 
 /**
  * The main game scene.
@@ -13,7 +16,7 @@ import { Player } from '../entities/Player';
  */
 export class Game extends Scene
 {
-    public player!: Player;
+    private player!: Player;
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private wasdKeys!: {
       W: Phaser.Input.Keyboard.Key;
@@ -26,8 +29,9 @@ export class Game extends Scene
     private worldGenerator!: WorldGenerator;
     public solidObjectsGroup!: Phaser.GameObjects.Group;
     public interactiveObjectsGroup!: Phaser.GameObjects.Group;
-    private visibleObjects: Set<GameObject> = new Set();
-    private cullPadding: number = GameConfig.GRID.TILE_SIZE * 2;
+    public cullingManager!: CullingManager;
+    private spawnManager!: SpawnManager;
+    public objectGroupManager!: ObjectGroupManager;
 
     constructor ()
     {
@@ -40,25 +44,25 @@ export class Game extends Scene
      */
     create ()
     {
-        // Initialize the world generator
+        // Initialize managers
         this.worldGenerator = new WorldGenerator();
+        this.cullingManager = new CullingManager(this.cameras.main);
+        this.spawnManager = new SpawnManager(this.worldGenerator);
+        this.objectGroupManager = new ObjectGroupManager(this);
         
-        // Find a suitable beach spawn point
-        const spawnPoint = this.findBeachSpawnPoint();
-        
-        // Create player and setup
+        // Find spawn point and create player
+        const spawnPoint = this.spawnManager.findBeachSpawnPoint();
         this.setupPlayer(spawnPoint);
-
-        // Initialize object groups
-        this.solidObjectsGroup = this.add.group({ runChildUpdate: true });
-        this.interactiveObjectsGroup = this.add.group({ runChildUpdate: true });
-        
-        // Set up group collisions
-        this.physics.add.collider(this.player, this.solidObjectsGroup);
         
         // Initialize chunk manager
         this.chunkManager = new ChunkManager(this, this.player);
-
+        
+        // Setup physics collisions
+        this.physics.add.collider(
+            this.player,
+            this.objectGroupManager.solidObjectsGroup
+        );
+        
         if(!this.input.keyboard)
         {
             throw new Error('No keyboard found');
@@ -84,9 +88,6 @@ export class Game extends Scene
         }
 
         EventBus.emit('current-scene-ready', this);
-
-        // Setup camera culling check
-        this.cameras.main.on('camerascroll', this.cullObjects, this);
     }
 
     /**
@@ -102,110 +103,18 @@ export class Game extends Scene
     }
 
     /**
-     * Find a suitable spawn point near the beach.
-     * @returns The spawn point.
-     */
-    private findBeachSpawnPoint(): { x: number, y: number } {
-        const searchRadius = GameConfig.WORLD.SPAWN_SEARCH_RADIUS;
-        const tileWorldSize = GameConfig.GRID.TILE_SIZE;
-        
-        let centerX = 0;
-        let centerY = 0;
-        
-        // First pass: Look for beach tiles adjacent to water with no trees
-        for (let r = 1; r < searchRadius; r++) {
-            for (let x = -r; x <= r; x++) {
-                for (let y = -r; y <= r; y++) {
-                    const worldX = Math.floor(centerX/tileWorldSize) + x;
-                    const worldY = Math.floor(centerY/tileWorldSize) + y;
-                    
-                    const currentTile = this.worldGenerator.getTileType(worldX, worldY);
-                    const resourceValue = this.worldGenerator.getResourceValue(worldX * tileWorldSize, worldY * tileWorldSize);
-                    
-                    // Check if it's a valid ground tile AND has no tree (resource value <= 0.2)
-                    if (!currentTile.isWall && resourceValue <= 0.2) {
-                        const hasAdjacentWater = [
-                            this.worldGenerator.getTileType(worldX + 1, worldY),
-                            this.worldGenerator.getTileType(worldX - 1, worldY),
-                            this.worldGenerator.getTileType(worldX, worldY + 1),
-                            this.worldGenerator.getTileType(worldX, worldY - 1)
-                        ].some(tile => tile.isWall);
-
-                        if (hasAdjacentWater) {
-                            return {
-                                x: worldX * tileWorldSize + tileWorldSize/2,
-                                y: worldY * tileWorldSize + tileWorldSize/2
-                            };
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Fallback: Look for any valid ground tile without trees
-        for (let r = 1; r < searchRadius; r++) {
-            for (let x = -r; x <= r; x++) {
-                for (let y = -r; y <= r; y++) {
-                    const worldX = Math.floor(centerX/tileWorldSize) + x;
-                    const worldY = Math.floor(centerY/tileWorldSize) + y;
-                    
-                    const currentTile = this.worldGenerator.getTileType(worldX, worldY);
-                    const resourceValue = this.worldGenerator.getResourceValue(worldX * tileWorldSize, worldY * tileWorldSize);
-                    
-                    if (!currentTile.isWall && resourceValue <= 0.2) {
-                        return {
-                            x: worldX * tileWorldSize + tileWorldSize/2,
-                            y: worldY * tileWorldSize + tileWorldSize/2
-                        };
-                    }
-                }
-            }
-        }
-        
-        return { x: centerX, y: centerY };
-    }
-
-    /**
      * The main game update loop.
      */
     update() {
-        this.handlePlayerMovement();
+        this.player.handleMovement();
         this.chunkManager.update();
-        
-        // Only update visible objects
-        this.visibleObjects.forEach(obj => {
-            if (obj.active) {
-                obj.update();
-            }
-        });
-    }
-
-    /**
-     * Handle the player's movement.
-     */
-    private handlePlayerMovement() {
-        const body = this.player.body as Phaser.Physics.Arcade.Body;
-        body.setVelocity(0);
-        const speed = GameConfig.PLAYER.SPEED;
-
-        if (this.cursors.left.isDown || this.wasdKeys.A.isDown) {
-            body.setVelocityX(-speed);
-        } else if (this.cursors.right.isDown || this.wasdKeys.D.isDown) {
-            body.setVelocityX(speed);
-        }
-
-        if (this.cursors.up.isDown || this.wasdKeys.W.isDown) {
-            body.setVelocityY(-speed);
-        } else if (this.cursors.down.isDown || this.wasdKeys.S.isDown) {
-            body.setVelocityY(speed);
-        }
     }
 
     /**
      * Change the scene to the given scene.
      * @param scene - The scene to change to.
      */
-    changeScene (scene: string = 'GameOver')
+    changeScene (scene: string)
     {
         this.scene.start(scene);
     }
@@ -215,65 +124,7 @@ export class Game extends Scene
      * @returns The player's position.
      */
     public getPlayerPosition() {
-        return {
-            x: this.player.x,
-            y: this.player.y
-        };
-    }
-
-    /**
-     * Cull objects outside the camera's view.
-     */
-    private cullObjects(): void {
-        const camera = this.cameras.main;
-        const bounds = {
-            left: camera.scrollX - this.cullPadding,
-            right: camera.scrollX + camera.width + this.cullPadding,
-            top: camera.scrollY - this.cullPadding,
-            bottom: camera.scrollY + camera.height + this.cullPadding
-        };
-
-        // Cull objects outside camera view
-        this.visibleObjects.forEach(obj => {
-            const visible = obj.x >= bounds.left && 
-                          obj.x <= bounds.right && 
-                          obj.y >= bounds.top && 
-                          obj.y <= bounds.bottom;
-            
-            // Only update states if visibility changed
-            if (obj.visible !== visible) {
-                obj.setVisible(visible);
-                obj.setActive(visible);
-                
-                // Disable physics for culled objects
-                if (obj.body) {
-                    const body = obj.body as Phaser.Physics.Arcade.Body;
-                    body.enable = visible;
-                    
-                    // If disabling, also stop any current movement
-                    if (!visible) {
-                        body.setVelocity(0, 0);
-                    }
-                }
-            }
-            
-        });
-    }
-
-    /**
-     * Register an object for culling.
-     * @param obj - The object to register.
-     */
-    public registerForCulling(obj: GameObject): void {
-        this.visibleObjects.add(obj);
-    }
-
-    /**
-     * Unregister an object from culling.
-     * @param obj - The object to unregister.
-     */
-    public unregisterFromCulling(obj: GameObject): void {
-        this.visibleObjects.delete(obj);
+        return this.player.getPosition();
     }
 
     /**
