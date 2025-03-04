@@ -34,6 +34,10 @@ export class Preloader extends Scene
 
         this.load.image('logo', 'logo.png');
         this.load.image('star', 'star.png');
+        this.load.spritesheet('trees', 'trees.png', {
+            frameWidth: 16,
+            frameHeight: 16
+        });
         
         // Load player sprite sheets
         // Idle animations
