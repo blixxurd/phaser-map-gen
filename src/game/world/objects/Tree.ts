@@ -30,7 +30,7 @@ export class Tree extends GameObject {
         const totalFrames = scene.textures.get('trees').frameTotal;
         
         // Set a random frame
-        sprite.setFrame(Phaser.Math.Between(0, totalFrames - 3));
+        sprite.setFrame(Phaser.Math.Between(0, totalFrames - 3)); // Todo: Remove -3 when we have a better sprite sheet
         
         return sprite;
     }
