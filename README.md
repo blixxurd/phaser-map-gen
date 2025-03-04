@@ -3,80 +3,128 @@
 ## Project Overview
 
 - **Purpose:**  
-  This project is a proof-of-concept template for creating a 2D RPG Map generator using Phaser 3. It is designed to be a starting point for developing a 2D RPG, and specifically focuses on the map generation and management through procedural generation. 
+  This project is a fully functional 2D RPG Map generator using Phaser 3. It demonstrates procedural world generation with dynamic chunk loading, creating an infinite explorable world with varied terrain, water bodies, and objects like trees. The project serves as a solid foundation for developing 2D RPG games with procedural content.
 
 - **Project Structure:**  
-  This project is structured to clearly separate game logic (handled by Phaser) from the UI and layout (managed by Next.js and React). This modular design facilitates easy expansion, maintenance, and rapid development through hot-reloading.
+  The project follows a modular architecture that clearly separates game logic (handled by Phaser) from the UI and layout (managed by Next.js and React). This design facilitates easy expansion, maintenance, and rapid development through hot-reloading.
   
 - **Technologies Used:**  
-  - **Phaser 3:** For game logic and rendering.  
-  - **Next.js & React:** For the user interface and server-side rendering (with client-side game instantiation).  
-  - **TypeScript:** For type safety and modern development practices.  
-  - **Additional Libraries:** Such as `simplex-noise` for procedural world generation.
+  - **Phaser 3:** For game logic, physics, and rendering
+  - **Next.js & React:** For the user interface and server-side rendering
+  - **TypeScript:** For type safety and modern development practices
+  - **Simplex Noise:** For natural-looking procedural terrain generation
 
-## Procedural Map Generation
+## Procedural Map Generation System
 
-The game implements a chunk-based procedural world generation system with the following key components:
+The game implements a sophisticated chunk-based procedural world generation system with the following key components:
 
 ### World Generator
 The `WorldGenerator` class uses multiple layers of noise to create varied terrain:
 
-- Uses Simplex noise with multiple octaves for natural-looking terrain generation
-- Separate noise generators for terrain, water, and resources
-- Generates different tile types (water, sand, dirt, grass, rock) based on height values
-- Handles object placement (like trees) based on resource noise values
+- **Multi-layered Noise Generation:**
+  - Uses Simplex noise with multiple octaves for natural-looking terrain
+  - Separate noise generators for terrain height and resource distribution
+  - Configurable noise scale and octaves for fine-tuning terrain features
 
-### Chunk Management
+- **Diverse Terrain Types:**
+  - Water (deep, medium, shallow)
+  - Sand (beaches and shorelines)
+  - Grass (light and dark variants)
+  - Dirt
+  - Rock
+
+- **Resource Distribution:**
+  - Secondary noise layer controls object placement
+  - Trees and other objects placed based on terrain type and resource values
+  - Natural-looking distribution patterns
+
+### Chunk Management System
 The `ChunkManager` handles dynamic loading and unloading of world chunks:
 
-- World is divided into chunks (16x16 tiles by default)
-- Chunks are generated and loaded dynamically as the player moves
-- Maintains efficient memory usage by unloading distant chunks
-- Handles both terrain tiles and game objects within chunks
+- **Dynamic Chunk Loading:**
+  - World is divided into chunks (8x8 tiles by default)
+  - Chunks are generated and loaded dynamically as the player moves
+  - Configurable load and unload distances (currently 4-chunk radius for loading)
 
-### Key Features
+- **Memory Optimization:**
+  - Automatic unloading of distant chunks (beyond 5-chunk radius)
+  - Complete cleanup of physics bodies and game objects
+  - Efficient memory management through object pooling
 
-1. **Terrain Generation**
-   - Multiple biome types based on height values
-   - Smooth transitions between different terrain types
-   - Water bodies and coastlines
-   - Collision handling for walls and obstacles
+- **Seamless World Exploration:**
+  - No loading screens or transitions between chunks
+  - Continuous world that extends in all directions
+  - Consistent terrain generation across chunk boundaries
 
-2. **Object Placement**
-   - Dynamic object spawning based on terrain type
-   - Trees and other objects placed using resource noise
-   - Physics-enabled objects with proper collision detection
-   - Automatic cleanup when chunks unload
+### Performance Optimization
 
-3. **Performance Optimization**
-   - Chunk-based loading/unloading system
-   - Object culling for off-screen entities
-   - Efficient physics handling for active objects
-   - Memory management through dynamic chunk lifecycle
+The game includes several systems to ensure smooth performance:
 
-### Technical Implementation
+- **Culling Manager:**
+  - Automatically disables rendering and physics for off-screen objects
+  - Camera-based culling with configurable padding
+  - Optimizes rendering and physics calculations
 
-The generation system uses a multi-layered approach:
+- **Coordinate Utilities:**
+  - Efficient conversion between pixel, tile, and chunk coordinate systems
+  - Optimized calculations for world positioning
+  - Helper functions for coordinate transformations
 
-1. **Base Terrain Layer**
-   - Generated using octaved Simplex noise
-   - Height values determine basic terrain type
-   - Handles water level and land mass distribution
+- **Object Group Management:**
+  - Organized management of solid and interactive objects
+  - Efficient collision detection through physics groups
+  - Automatic cleanup when objects are destroyed
 
-2. **Resource Distribution**
-   - Secondary noise layer for object placement
-   - Controls density and distribution of trees and resources
-   - Ensures natural-looking object clusters
+## Player System
 
-3. **Physics Integration**
-   - Automatic collision setup for walls and objects
-   - Dynamic physics body creation and cleanup
-   - Optimized collision detection within active chunks
+The player system includes:
 
-The system is designed to be expandable, allowing for easy addition of new terrain types, objects, and biomes while maintaining performance through efficient chunk management and object culling.
+- **Smooth Movement:**
+  - Arrow key and WASD controls
+  - Physics-based movement with collision detection
+  - Configurable movement speed
 
-## Known Bugs
-- Player can sometimes spawn in the water or in trees, and cannot move. To fix, just reload the page and try loading in again. 
+- **Animations:**
+  - Directional animations (up, down, left, right)
+  - Walking and idle animation states
+  - Smooth transitions between animation states
+
+- **Inventory System:**
+  - Basic inventory implementation with 28 slots
+  - Support for item stacking
+  - Methods for adding, removing, and checking items
+
+## Technical Implementation
+
+### Coordinate Systems
+
+The game uses three coordinate systems:
+
+1. **Pixel Coordinates:** Actual screen/world positions in pixels
+2. **Tile Coordinates:** Grid-based positions where each tile is a discrete unit
+3. **Chunk Coordinates:** Groups of tiles organized into chunks
+
+The `CoordinateUtils` class provides methods to convert between these systems.
+
+### Physics Integration
+
+- **Collision Detection:**
+  - Automatic collision setup for walls and objects
+  - Physics bodies for interactive elements
+  - Optimized collision through culling and grouping
+
+- **Performance Optimization:**
+  - Physics bodies are only active for visible objects
+  - Static bodies for immovable objects
+  - Dynamic bodies for moving entities
+
+### Spawn System
+
+The `SpawnManager` implements intelligent player spawning:
+
+- Searches for suitable spawn locations (preferably beaches near water)
+- Ensures the player doesn't spawn in water or inside objects
+- Falls back to any valid ground tile if ideal conditions aren't found
 
 ## Game Controls
 
@@ -85,12 +133,20 @@ The system is designed to be expandable, allowing for easy addition of new terra
 - Mouse hover effects show button interactivity
 
 ### In-Game Controls
-- **Arrow Keys:** Move the player character
+- **Arrow Keys or WASD:** Move the player character
 
-The debug panel in the corner shows:
-- Current world coordinates (X, Y)
-- Current chunk coordinates
-- Real-time position updates
+## Configuration
+
+The game is highly configurable through the `GameConfig` object:
+
+- **Grid Settings:** Tile size (16px), chunk size (8 tiles)
+- **Player Settings:** Movement speed (80), player size (12px)
+- **World Settings:** Chunk load/unload radius, spawn search radius
+- **Performance Settings:** Culling padding, physics radius, update intervals
+- **Camera Settings:** Zoom level (2.5x)
+
+## Known Bugs
+- Player can sometimes spawn in the water or in trees, and cannot move. To fix, just reload the page to try loading in again.
 
 ## Available Commands
 
@@ -99,7 +155,21 @@ The debug panel in the corner shows:
 | `npm install` | Install project dependencies |
 | `npm run dev` | Launch a development web server |
 | `npm run build` | Create a production build in the `dist` folder |
-| `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
-| `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
+| `npm run dev-nolog` | Launch a development web server without sending anonymous data |
+| `npm run build-nolog` | Create a production build without sending anonymous data |
+
+## Future Enhancements
+
+Potential areas for future development:
+
+- Additional tile layer for user generated content
+- Persistent object destruction
+- Additional biome types (desert, snow, forest)
+- More object types (rocks, plants, structures)
+- Interactive objects (resources to gather, NPCs)
+- Day/night cycle with lighting effects
+- Weather systems
+- Expanded player capabilities (tools, combat)
+- Save/load system for world persistence
 
 
