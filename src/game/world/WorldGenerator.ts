@@ -131,7 +131,7 @@ export class WorldGenerator {
     ): GameObject | null {
         const resourceValue = this.getResourceValue(pixelX, pixelY);
         // Only attempt to spawn trees on valid ground tiles
-        if (!tileType.isWall && tileType.name !== 'Sand' && resourceValue > 0.2) {
+        if (!tileType.isWall && tileType.name !== 'Sand' && resourceValue > 0.15) {
             return new Tree(scene, pixelX, pixelY, tileType, this);
         }
 

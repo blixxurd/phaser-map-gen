@@ -100,7 +100,7 @@ export class Game extends Scene
         this.add.existing(this.player);
         
         this.cameras.main.startFollow(this.player);
-        this.cameras.main.setZoom(2.5);
+        this.cameras.main.setZoom(GameConfig.CAMERA.ZOOM);
     }
 
     /**

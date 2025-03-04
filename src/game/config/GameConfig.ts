@@ -25,5 +25,9 @@ export const GameConfig = {
         UPDATE_INTERVAL: 200,     // Ms between distant object updates
         PHYSICS_RADIUS: 400,      // Active physics radius around player
         MAX_VISIBLE_OBJECTS: 10  // Maximum simultaneous visible objects
+    },
+    // Camera constants
+    CAMERA: {
+        ZOOM: 2,            // Camera zoom level
     }
 } as const; 
