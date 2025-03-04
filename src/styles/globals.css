@@ -46,3 +46,50 @@ body {
         color: rgba(255, 255, 255, 0.3);
     }
 }
+
+/* Debug Panel Styles */
+.debug-panel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  max-width: 400px;
+  max-height: 300px;
+  overflow: auto;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.debug-panel.collapsed {
+  max-height: 40px;
+  overflow: hidden;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.debug-title {
+  font-weight: bold;
+  margin: 0;
+}
+
+.debug-toggle {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+}
+
+.debug-info {
+  margin-top: 10px;
+}

@@ -9,6 +9,8 @@ function App()
 {
     // The sprite can only be moved in the MainMenu Scene
     const [canMoveSprite, setCanMoveSprite] = useState(true);
+    // State to track if debug panel is collapsed
+    const [isDebugCollapsed, setIsDebugCollapsed] = useState(false);
 
     //  References to the PhaserGame component (game and scene are exposed)
     const phaserRef = useRef<IRefPhaserGame | null>(null);
@@ -117,11 +119,21 @@ function App()
         }
     }
 
+    // Toggle debug panel collapse state
+    const toggleDebugPanel = () => {
+        setIsDebugCollapsed(!isDebugCollapsed);
+    };
+
     return (
         <div id="app">
             <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
-            <div className="debug-panel">
-                <h3>Debug Information</h3>
+            <div className={`debug-panel ${isDebugCollapsed ? 'collapsed' : ''}`}>
+                <div className="debug-header" onClick={toggleDebugPanel}>
+                    <h3 className="debug-title">Debug Information</h3>
+                    <button className="debug-toggle">
+                        {isDebugCollapsed ? '▲' : '▼'}
+                    </button>
+                </div>
                 <div className="debug-info">
                     <pre>
 {`World Position:
