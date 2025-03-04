@@ -3,6 +3,7 @@ import Alea from 'alea';
 import { createNoise2D } from 'simplex-noise';
 import { Tree } from './objects/Tree';
 import { GameObject } from './GameObject';
+import { CoordinateUtils } from '../utils/CoordinateUtils';
 
 export interface TileType {
     isWall: boolean;
@@ -22,6 +23,19 @@ export interface TileType {
  * The ChunkManager will then use the tile type to generate the tiles and objects for a chunk.
  */
 export class WorldGenerator {
+    private static instance: WorldGenerator;
+    
+    /**
+     * Get the singleton instance of WorldGenerator.
+     * This ensures that all parts of the code use the same world generation.
+     */
+    public static getInstance(): WorldGenerator {
+        if (!WorldGenerator.instance) {
+            WorldGenerator.instance = new WorldGenerator();
+        }
+        return WorldGenerator.instance;
+    }
+    
     /**
      * The noise generators for the world.
      */
@@ -30,7 +44,11 @@ export class WorldGenerator {
         resources: (x: number, y: number) => number;
     };
 
-    constructor() {
+    /**
+     * Private constructor to enforce singleton pattern.
+     * Use WorldGenerator.getInstance() instead of new WorldGenerator().
+     */
+    private constructor() {
         // Initialize noise generators with seeded PRNGs
         const terrainSeed = 'terrain' + Math.random();
         const resourcesSeed = 'resources' + Math.random();
@@ -84,6 +102,17 @@ export class WorldGenerator {
         if (terrainHeight < 0.6) return { color: 0x8B7355, isWall: false, name: 'Dirt' };
         if (terrainHeight < 0.8) return { color: 0x736F6E, isWall: true, name: 'Rock' };
         return { color: 0xE5E4E2, isWall: true, name: 'Rock' };
+    }
+
+    /**
+     * Get the tile type for a given position in pixel coordinates.
+     * @param pixelX - The x coordinate of the position in pixels.
+     * @param pixelY - The y coordinate of the position in pixels.
+     * @returns The tile type for the given position.
+     */
+    getTileTypeAtPixel(pixelX: number, pixelY: number): TileType {
+        const { tileX, tileY } = CoordinateUtils.pixelToTile(pixelX, pixelY);
+        return this.getTileType(tileX, tileY);
     }
 
     /**

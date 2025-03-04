@@ -3,6 +3,7 @@ import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
 import { MainMenu } from './game/scenes/MainMenu';
 import { Game } from './game/scenes/Game';
 import { GameConfig } from './game/config/GameConfig';
+import { CoordinateUtils } from './game/utils/CoordinateUtils';
 
 function App()
 {
@@ -90,10 +91,8 @@ function App()
                     const playerPos = gameScene.getPlayerPosition();
                     const currentTileType = gameScene.getCurrentTileType();
                     if (playerPos) {
-                        const worldX = Math.floor(playerPos.x / GameConfig.GRID.TILE_SIZE);
-                        const worldY = Math.floor(playerPos.y / GameConfig.GRID.TILE_SIZE);
-                        const chunkX = Math.floor(worldX / GameConfig.GRID.CHUNK_SIZE);
-                        const chunkY = Math.floor(worldY / GameConfig.GRID.CHUNK_SIZE);
+                        const { tileX: worldX, tileY: worldY } = CoordinateUtils.pixelToTile(playerPos.x, playerPos.y);
+                        const { chunkX, chunkY } = CoordinateUtils.tileToChunk(worldX, worldY);
                         
                         setDebugInfo({
                             coords: { x: worldX, y: worldY },

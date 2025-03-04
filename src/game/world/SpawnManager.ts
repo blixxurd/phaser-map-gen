@@ -1,5 +1,6 @@
 import { WorldGenerator } from './WorldGenerator';
 import { GameConfig } from '../config/GameConfig';
+import { CoordinateUtils } from '../utils/CoordinateUtils';
 
 export class SpawnManager {
     private worldGenerator: WorldGenerator;
@@ -20,25 +21,29 @@ export class SpawnManager {
         for (let r = 1; r < this.searchRadius; r++) {
             for (let x = -r; x <= r; x++) {
                 for (let y = -r; y <= r; y++) {
-                    const worldX = Math.floor(centerX/this.tileSize) + x;
-                    const worldY = Math.floor(centerY/this.tileSize) + y;
+                    // Convert center pixel coordinates to tile coordinates
+                    const { tileX: baseTileX, tileY: baseTileY } = CoordinateUtils.pixelToTile(centerX, centerY);
+                    const tileX = baseTileX + x;
+                    const tileY = baseTileY + y;
                     
-                    const currentTile = this.worldGenerator.getTileType(worldX, worldY);
-                    const resourceValue = this.worldGenerator.getResourceValue(worldX * this.tileSize, worldY * this.tileSize);
+                    const currentTile = this.worldGenerator.getTileType(tileX, tileY);
+                    
+                    // Convert tile coordinates to pixel for resource value check
+                    const { pixelX, pixelY } = CoordinateUtils.tileToPixel(tileX, tileY);
+                    const resourceValue = this.worldGenerator.getResourceValue(pixelX, pixelY);
                     
                     if (!currentTile.isWall && resourceValue <= 0.2) {
                         const hasAdjacentWater = [
-                            this.worldGenerator.getTileType(worldX + 1, worldY),
-                            this.worldGenerator.getTileType(worldX - 1, worldY),
-                            this.worldGenerator.getTileType(worldX, worldY + 1),
-                            this.worldGenerator.getTileType(worldX, worldY - 1)
+                            this.worldGenerator.getTileType(tileX + 1, tileY),
+                            this.worldGenerator.getTileType(tileX - 1, tileY),
+                            this.worldGenerator.getTileType(tileX, tileY + 1),
+                            this.worldGenerator.getTileType(tileX, tileY - 1)
                         ].some(tile => tile.isWall);
 
                         if (hasAdjacentWater) {
-                            return {
-                                x: worldX * this.tileSize + this.tileSize/2,
-                                y: worldY * this.tileSize + this.tileSize/2
-                            };
+                            // Return the center of the tile in pixel coordinates
+                            const { pixelX, pixelY } = CoordinateUtils.tileToPixel(tileX, tileY);
+                            return { x: pixelX, y: pixelY };
                         }
                     }
                 }
@@ -49,17 +54,17 @@ export class SpawnManager {
         for (let r = 1; r < this.searchRadius; r++) {
             for (let x = -r; x <= r; x++) {
                 for (let y = -r; y <= r; y++) {
-                    const worldX = Math.floor(centerX/this.tileSize) + x;
-                    const worldY = Math.floor(centerY/this.tileSize) + y;
+                    const { tileX: baseTileX, tileY: baseTileY } = CoordinateUtils.pixelToTile(centerX, centerY);
+                    const tileX = baseTileX + x;
+                    const tileY = baseTileY + y;
                     
-                    const currentTile = this.worldGenerator.getTileType(worldX, worldY);
-                    const resourceValue = this.worldGenerator.getResourceValue(worldX * this.tileSize, worldY * this.tileSize);
+                    const currentTile = this.worldGenerator.getTileType(tileX, tileY);
+                    const { pixelX, pixelY } = CoordinateUtils.tileToPixel(tileX, tileY);
+                    const resourceValue = this.worldGenerator.getResourceValue(pixelX, pixelY);
                     
                     if (!currentTile.isWall && resourceValue <= 0.2) {
-                        return {
-                            x: worldX * this.tileSize + this.tileSize/2,
-                            y: worldY * this.tileSize + this.tileSize/2
-                        };
+                        const { pixelX, pixelY } = CoordinateUtils.tileToPixel(tileX, tileY);
+                        return { x: pixelX, y: pixelY };
                     }
                 }
             }

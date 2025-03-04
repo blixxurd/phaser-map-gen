@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { GameConfig } from '../config/GameConfig';
+import { CoordinateUtils } from '../utils/CoordinateUtils';
 
 export interface InventorySlot {
     itemId: string | null;
@@ -224,5 +225,19 @@ export class Player extends Phaser.GameObjects.Sprite {
             x: this.x,
             y: this.y
         };
+    }
+
+    /**
+     * Get the player's position in tile coordinates.
+     */
+    public getTilePosition() {
+        return CoordinateUtils.pixelToTile(this.x, this.y);
+    }
+
+    /**
+     * Get the player's position in chunk coordinates.
+     */
+    public getChunkPosition() {
+        return CoordinateUtils.pixelToChunk(this.x, this.y);
     }
 } 

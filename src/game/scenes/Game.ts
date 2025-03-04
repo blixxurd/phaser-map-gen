@@ -8,6 +8,7 @@ import { Player } from '../entities/Player';
 import { CullingManager } from '../world/CullingManager';
 import { SpawnManager } from '../world/SpawnManager';
 import { ObjectGroupManager } from '../world/ObjectGroupManager';
+import { CoordinateUtils } from '../utils/CoordinateUtils';
 
 /**
  * The main game scene.
@@ -45,7 +46,7 @@ export class Game extends Scene
     create ()
     {
         // Initialize managers
-        this.worldGenerator = new WorldGenerator();
+        this.worldGenerator = WorldGenerator.getInstance();
         this.cullingManager = new CullingManager(this.cameras.main);
         this.spawnManager = new SpawnManager(this.worldGenerator);
         this.objectGroupManager = new ObjectGroupManager(this);
@@ -133,9 +134,8 @@ export class Game extends Scene
      */
     public getCurrentTileType() {
         if (this.player) {
-            const worldX = Math.floor(this.player.x / GameConfig.GRID.TILE_SIZE);
-            const worldY = Math.floor(this.player.y / GameConfig.GRID.TILE_SIZE);
-            return this.worldGenerator.getTileType(worldX, worldY);
+            const { tileX, tileY } = CoordinateUtils.pixelToTile(this.player.x, this.player.y);
+            return this.worldGenerator.getTileType(tileX, tileY);
         }
         return null;
     }

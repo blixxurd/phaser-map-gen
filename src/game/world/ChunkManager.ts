@@ -2,6 +2,7 @@ import { Scene } from 'phaser';
 import { WorldGenerator } from './WorldGenerator';
 import { GameObject } from './GameObject';
 import { GameConfig } from '../config/GameConfig';
+import { CoordinateUtils } from '../utils/CoordinateUtils';
 
 /**
  * The ChunkManager is responsible for managing the chunks of the world.
@@ -28,7 +29,7 @@ export class ChunkManager {
         this.player = player;
         this.tileSize = tileSize;
         this.chunkSize = chunkSize;
-        this.worldGenerator = new WorldGenerator();
+        this.worldGenerator = WorldGenerator.getInstance();
     }
 
     /**
@@ -52,22 +53,26 @@ export class ChunkManager {
 
         const tiles: Phaser.GameObjects.Rectangle[] = [];
         const objects: GameObject[] = [];
-        const startX = chunkX * this.chunkSize;
-        const startY = chunkY * this.chunkSize;
+        
+        // Get the starting tile coordinates for this chunk
+        const { tileX: startX, tileY: startY } = CoordinateUtils.chunkToTile(chunkX, chunkY);
 
         for (let x = 0; x < this.chunkSize; x++) {
             for (let y = 0; y < this.chunkSize; y++) {
-                const worldX = startX + x;
-                const worldY = startY + y;
-                const pixelX = worldX * this.tileSize;
-                const pixelY = worldY * this.tileSize;
+                // Calculate tile coordinates
+                const tileX = startX + x;
+                const tileY = startY + y;
                 
-                const tileType = this.worldGenerator.getTileType(worldX, worldY);
+                // Get tile type based on tile coordinates
+                const tileType = this.worldGenerator.getTileType(tileX, tileY);
+                
+                // Convert to pixel coordinates for rendering
+                const { pixelX, pixelY } = CoordinateUtils.tileToPixel(tileX, tileY, false);
                 
                 // Create tile
                 const tile = this.scene.add.rectangle(
-                    pixelX + this.tileSize/2,
-                    pixelY + this.tileSize/2,
+                    pixelX + this.tileSize/2, // Center of tile
+                    pixelY + this.tileSize/2, // Center of tile
                     this.tileSize,
                     this.tileSize,
                     tileType.color
@@ -80,7 +85,7 @@ export class ChunkManager {
                     this.scene.physics.add.collider(this.player, tile);
                 }
                 
-                // Create objects at the same position
+                // Create objects at the center of the tile
                 const tileObject = this.worldGenerator.getTileObject(
                     this.scene, 
                     pixelX + this.tileSize/2,
@@ -90,7 +95,6 @@ export class ChunkManager {
                 
                 if (tileObject) {
                     objects.push(tileObject);
-                    // Note: Collision is now handled in GameObject.setupPhysics()
                 }
                 
                 tiles.push(tile);
@@ -112,8 +116,11 @@ export class ChunkManager {
      * See GameConfig for the load and unload distances.
      */
     update() {
-        const playerChunkX = Math.floor(this.player.x / (this.chunkSize * this.tileSize));
-        const playerChunkY = Math.floor(this.player.y / (this.chunkSize * this.tileSize));
+        // Convert player's pixel position to chunk coordinates
+        const { chunkX: playerChunkX, chunkY: playerChunkY } = CoordinateUtils.pixelToChunk(
+            this.player.x, 
+            this.player.y
+        );
         
         // Generate chunks in view distance
         for (let x = -GameConfig.WORLD.CHUNK_LOAD_RADIUS; x <= GameConfig.WORLD.CHUNK_LOAD_RADIUS; x++) {

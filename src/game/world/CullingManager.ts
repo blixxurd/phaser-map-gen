@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { GameObject } from './GameObject';
 import { GameConfig } from '../config/GameConfig';
+import { CoordinateUtils } from '../utils/CoordinateUtils';
 
 export class CullingManager {
     private visibleObjects: Set<GameObject> = new Set();
@@ -24,6 +25,7 @@ export class CullingManager {
     }
 
     private cullObjects(): void {
+        // Define camera bounds in pixel coordinates
         const bounds = {
             left: this.camera.scrollX - this.cullPadding,
             right: this.camera.scrollX + this.camera.width + this.cullPadding,
@@ -31,7 +33,16 @@ export class CullingManager {
             bottom: this.camera.scrollY + this.camera.height + this.cullPadding
         };
 
+        // Convert camera bounds to tile coordinates for potential optimization
+        const tileBounds = {
+            left: CoordinateUtils.pixelToTile(bounds.left, 0).tileX,
+            right: CoordinateUtils.pixelToTile(bounds.right, 0).tileX,
+            top: CoordinateUtils.pixelToTile(0, bounds.top).tileY,
+            bottom: CoordinateUtils.pixelToTile(0, bounds.bottom).tileY
+        };
+
         this.visibleObjects.forEach(obj => {
+            // Check if object is within camera bounds using pixel coordinates
             const visible = obj.x >= bounds.left && 
                           obj.x <= bounds.right && 
                           obj.y >= bounds.top && 
