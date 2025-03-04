@@ -1,4 +1,4 @@
-# Phaser Map Gen
+# Phaser Map Gen / Generative RPG Starter
 
 ## Project Overview
 
@@ -13,6 +13,9 @@
   - **Next.js & React:** For the user interface and server-side rendering
   - **TypeScript:** For type safety and modern development practices
   - **Simplex Noise:** For natural-looking procedural terrain generation
+
+![Game Screenshot](.docs/screenshot.png)
+*Screenshot of the procedurally generated world showing forests, beaches, water of varying depths, and the player character. The debug panel in the bottom right displays the player's position and current tile information.*
 
 ## Procedural Map Generation System
 
